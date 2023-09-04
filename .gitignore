@@ -1,0 +1,7 @@
+userdemodata.txt
+secret.json
+p.py
+__pycache__
+db.sqlite3
+migrations/
+server.json
