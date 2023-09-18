@@ -46,7 +46,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 class Summary(models.Model):
     user_email = models.EmailField(max_length=30)  # 문자열 필드로 변경
-    url_link = models.URLField()
+    video_id = models.CharField(max_length=255)
+    channel_name = models.CharField(max_length=255)
     title = models.CharField(max_length=255)
     summary = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
