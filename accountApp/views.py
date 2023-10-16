@@ -30,7 +30,8 @@ def summary_from_url(request):
         url_link = request.data.get('url')
 
         #여기에 자막다운로드 기능 추가하기
-        video_id, channel_name, title, text = caption_extract(url_link)
+        video_id, channel_name, title, text , categoryId, tags= caption_extract(url_link)
+        
         subtitles = cc_to_txt(text)
 
         start_time = time.time()
@@ -38,15 +39,14 @@ def summary_from_url(request):
         result = model(subtitles, min_length=60)
         full = "".join(result)
         end_time = time.time()
-        bert_time = round(end_time - start_time, 1)
-        
+        bert_time = round(end_time - start_time, 1)        
 
         summary_obj = Summary(user_email=post_email, video_id=video_id, channel_name=channel_name, title=title, summary=full, created_at =datetime.datetime.now())
         summary_obj.save()
         print(f'summary fin!, 요약 소요 시간 : {bert_time}초')
 
         # 응답 처리
-        return JsonResponse({'message': 'Data sent and response received successfully', 'channel_name':channel_name, 'title':title, 'summary': full, 'video_id': video_id, 'bert_time': bert_time})
+        return JsonResponse({'message': 'Data sent and response received successfully', 'channel_name':channel_name, 'title':title, 'summary': full, 'video_id': video_id, 'categoryId': categoryId, 'tags':tags, 'bert_time': bert_time})
 
 
     return JsonResponse({'message': 'POST method required'}, status=400)

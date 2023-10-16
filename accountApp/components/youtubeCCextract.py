@@ -1,28 +1,27 @@
 
 from urllib.parse import urlparse, parse_qs
 
-import re, requests
-from bs4 import BeautifulSoup
+
+import re
 from youtube_transcript_api import YouTubeTranscriptApi
-
-def extract_channel_name(youtube_url):
-    # 파싱된 URL에서 쿼리 파라미터를 추출
-    parsed_url = urlparse(youtube_url)
-    query_params = parse_qs(parsed_url.query)
-    # 'ab_channel' 파라미터를 사용하여 채널명 추출
-    channel_name = query_params.get('ab_channel', [None])[0]
-    return channel_name
-
+from accountApp.components.video_meta_data import get_video_data
 
 
 def caption_extract(url):
-    response = requests.get(url)
-    soup = BeautifulSoup(response.text, "html.parser")
-    title = soup.find("meta", property="og:title")["content"]
+    pattern = r'(?:youtube\.com/watch\?v=|youtu\.be/|youtube\.com/watch\?.*?v=|youtube\.com/watch\?.*?&v=)([a-zA-Z0-9_-]+)'
+
+    match = re.search(pattern, url)
+    if match:
+        video_id = match.group(1)
+        print(video_id)
+    else:
+        print(url,"의 Video ID를 찾을 수 없습니다.")
+        
+    title, channel_name, category_id, tags = get_video_data(video_id)
 
     # video_id = '6_cFlt368XM'
-    video_id = re.search(r"(?<=v=)[\w-]+", url).group(0)
-
+    # video_id = re.search(r"(?<=v=)[\w-]+", url).group(0)
+    
     transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
 
     # iterate over all available transcripts
@@ -34,6 +33,7 @@ def caption_extract(url):
         else:
             text_list = [line["text"] for line in transcript.translate("en").fetch()]
 
-    channel_name = extract_channel_name(url)
+    
+    # print(title,video_id, url)
+    return video_id, channel_name, title, "\n".join(text_list), category_id, tags
 
-    return video_id, channel_name, title, "\n".join(text_list)
