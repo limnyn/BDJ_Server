@@ -25,25 +25,30 @@ def summary_from_url(request):
     if request.method == 'POST':
 
         post_email = request.data.get('email')
-        print(f"summary요청 from {post_email}")
-        # 사용자로부터 받은 데이터 (예시)
         url_link = request.data.get('url')
-
+        print(f"summary요청 from {post_email}: {url_link}")
+        # 사용자로부터 받은 데이터 (예시)
         #여기에 자막다운로드 기능 추가하기
         video_id, channel_name, title, text , categoryId, tags= caption_extract(url_link)
+        if video_id == 0:
+            return JsonResponse({'message': 'videoid not exsist', 'channel_name':0, 'title':0, 'summary': 0, 'video_id': 0, 'categoryId': 0, 'tags':0, 'bert_time': 0})
+            
         
         subtitles = cc_to_txt(text)
-
+        # print(subtitles)
         start_time = time.time()
         model = Summarizer()
         result = model(subtitles, min_length=60)
+        
         full = "".join(result)
         end_time = time.time()
         bert_time = round(end_time - start_time, 1)        
-
-        summary_obj = Summary(user_email=post_email, video_id=video_id, channel_name=channel_name, title=title, summary=full, created_at =datetime.datetime.now())
-        summary_obj.save()
-        print(f'summary fin!, 요약 소요 시간 : {bert_time}초')
+        if len(full) == 0:
+            print("bert 요약불가 링크")
+        else:
+            summary_obj = Summary(user_email=post_email, video_id=video_id, channel_name=channel_name, title=title, summary=full, created_at =datetime.datetime.now())
+            summary_obj.save()
+            print(f'summary fin!, 요약 소요 시간 : {bert_time}초')
 
         # 응답 처리
         return JsonResponse({'message': 'Data sent and response received successfully', 'channel_name':channel_name, 'title':title, 'summary': full, 'video_id': video_id, 'categoryId': categoryId, 'tags':tags, 'bert_time': bert_time})

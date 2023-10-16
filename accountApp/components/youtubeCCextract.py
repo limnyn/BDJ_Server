@@ -15,7 +15,9 @@ def caption_extract(url):
         video_id = match.group(1)
         print(video_id)
     else:
-        print(url,"의 Video ID를 찾을 수 없습니다.")
+        print(url,"에서 Video ID를 찾을 수 없습니다.")
+        return 0, 0, 0, 0, 0, 0
+
         
     title, channel_name, category_id, tags = get_video_data(video_id)
 

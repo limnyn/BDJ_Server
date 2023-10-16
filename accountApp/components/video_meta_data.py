@@ -23,8 +23,12 @@ def get_video_data(video_id):
             title = data["items"][0]["snippet"]["title"]
             channel_name = data["items"][0]["snippet"]["channelTitle"]
             category_id = data["items"][0]["snippet"]["categoryId"]
-            tags = data["items"][0]["snippet"]["tags"]
-            return title, channel_name, category_id, tags
+            if "tags" in data["items"][0]["snippet"]:
+                tags =  data["items"][0]["snippet"]["tags"]
+                return title, channel_name, category_id, tags
+            else:
+                return title, channel_name, category_id, []
+                
         else:
             return "Channel name not found for the provided video ID."
 
