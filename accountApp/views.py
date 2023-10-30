@@ -14,7 +14,7 @@ from accountApp.components.cc_to_text import cc_to_txt
 from accountApp.components.youtubeCCextract import caption_extract
 from summarizer import Summarizer
 
-import time
+import time, sqlite3, json, openai
 
 from accountApp.models import Summary
 
@@ -23,7 +23,7 @@ from accountApp.models import Summary
 @authentication_classes((JWTTokenUserAuthentication,))
 def summary_from_url(request):
     if request.method == 'POST':
-
+        request_time = datetime.datetime.now()
         post_email = request.data.get('email')
         url_link = request.data.get('url')
         print(f"summary요청 from {post_email}: {url_link}")
@@ -33,7 +33,29 @@ def summary_from_url(request):
         if video_id == 0:
             return JsonResponse({'message': 'videoid not exsist', 'channel_name':0, 'title':0, 'summary': 0, 'video_id': 0, 'categoryId': 0, 'tags':0, 'bert_time': 0})
             
-        
+        else:
+            # video_id가 0이 아닌 경우, db.sqlite3에서 해당 video_id에 해당하는 레코드를 찾아서 출력
+            conn = sqlite3.connect('db.sqlite3')
+
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM accountApp_summary WHERE video_id = ?", (video_id,))
+            record = cursor.fetchone()
+            conn.close()
+
+            if record:
+                # 레코드를 찾았을 경우 출력
+                print(f"Summary record for video_id {video_id}: {record}")
+                video_id = record[2]
+                channel_name = record[3]
+                title = record[4]
+                result = record[5]
+                bert_time = record[6]
+                return JsonResponse({'message': '이미 요약된 링크입니다.', 'channel_name':channel_name, 'title':title, 'summary': result, 'video_id': video_id, 'categoryId': categoryId, 'tags':tags, 'bert_time': bert_time, "created_at":request_time})
+
+                
+            else:
+                # 레코드를 찾지 못했을 경우 메시지 출력
+                print(f"No summary record found for video_id {video_id}")
         subtitles = cc_to_txt(text)
         # print(subtitles)
         start_time = time.time()
@@ -46,12 +68,34 @@ def summary_from_url(request):
         if len(full) == 0:
             print("bert 요약불가 링크")
         else:
-            summary_obj = Summary(user_email=post_email, video_id=video_id, channel_name=channel_name, title=title, summary=full, created_at =datetime.datetime.now())
-            summary_obj.save()
+
             print(f'summary fin!, 요약 소요 시간 : {bert_time}초')
 
+            with open('secret.json', 'r') as f:
+                data = json.load(f)
+            openai.api_key = data['GPT_KEY']
+
+            quest = (
+                f"User: {title}라는 제목을 가진 영상의 요약 내용인\n[{full}]\n를 읽고 이 영상에 대한 내용을 한국어로 보고서를 작성해서 출력해줘"
+            )
+            messages = [{"role": "user", "content": quest}]
+
+            completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=messages)
+
+
+            chat_response = completion.choices[0].message["content"].strip()
+            # print(f"보고서: {chat_response}") 
+            bert_time = round(end_time - start_time, 1)        
+            full = chat_response
+            summary_obj = Summary(user_email=post_email, video_id=video_id, channel_name=channel_name, title=title, summary=full, created_at =request_time)
+            summary_obj.save()
+            
+            
+
+
+
         # 응답 처리
-        return JsonResponse({'message': 'Data sent and response received successfully', 'channel_name':channel_name, 'title':title, 'summary': full, 'video_id': video_id, 'categoryId': categoryId, 'tags':tags, 'bert_time': bert_time})
+        return JsonResponse({'message': 'Data sent and response received successfully', 'channel_name':channel_name, 'title':title, 'summary': full, 'video_id': video_id, 'categoryId': categoryId, 'tags':tags, 'bert_time': bert_time, 'created_at':request_time})
 
 
     return JsonResponse({'message': 'POST method required'}, status=400)
@@ -63,6 +107,7 @@ def summary_from_text(request):
     if request.method == 'POST':
         # 사용자로부터 받은 데이터 (예시)
         text = request.data.get('source_text')
+        request_time = datetime.datetime.now()
 
 
         start_time = time.time()
@@ -70,11 +115,30 @@ def summary_from_text(request):
         result = model(text, min_length=60)
         end_time = time.time()
         bert_time = round(end_time - start_time, 1)
-        
         print(f'summary fin!, 요약 소요 시간 : {bert_time}초')
+        if len(result) != 0:
+            
+            with open('secret.json', 'r') as f:
+                data = json.load(f)
+            openai.api_key = data['GPT_KEY']
+
+            quest = (
+                f"User: 발화문을 한번 요약한 아래 스크립트를 읽고 이 발화문이 말하고자 하는 내용을 한국어로 보고서를 작성해서 출력해줘\n{result}"
+            )
+            messages = [{"role": "user", "content": quest}]
+
+            completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=messages)
+
+            end_time = time.time()
+            gpt_time = round(end_time - start_time, 1)
+            chat_response = completion.choices[0].message["content"].strip()
+            print(f'summary fin!, 요약 소요 시간 : {gpt_time}초')
+            
+            return JsonResponse({'message': 'Data sent and response received successfully', 'summary': chat_response, 'bert_time': bert_time, 'created_at':request_time })
+            
 
         # 응답 처리
-        return JsonResponse({'message': 'Data sent and response received successfully', 'summary': result, 'bert_time': bert_time})
+        return JsonResponse({'message': '요약이 불가능한 파일입니다. 다른 파일을 선택해주세요.', 'summary': result, 'bert_time': bert_time})
 
 
     return JsonResponse({'message': 'POST method required'}, status=400)
