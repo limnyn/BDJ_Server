@@ -50,5 +50,6 @@ class Summary(models.Model):
     channel_name = models.CharField(max_length=255)
     title = models.CharField(max_length=255)
     summary = models.TextField()
+    thumbnail = models.TextField(default="")
     created_at = models.DateTimeField(auto_now_add=True)
 

@@ -19,7 +19,7 @@ def caption_extract(url):
         return 0, 0, 0, 0, 0, 0
 
         
-    title, channel_name, category_id, tags = get_video_data(video_id)
+    title, channel_name, category_id, tags, thumbnail = get_video_data(video_id)
 
     # video_id = '6_cFlt368XM'
     # video_id = re.search(r"(?<=v=)[\w-]+", url).group(0)
@@ -37,5 +37,5 @@ def caption_extract(url):
 
     
     # print(title,video_id, url)
-    return video_id, channel_name, title, "\n".join(text_list), category_id, tags
+    return video_id, channel_name, title, "\n".join(text_list), category_id, tags, thumbnail
 
