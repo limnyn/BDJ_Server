@@ -123,23 +123,24 @@ def summary_from_text(request):
         print(f'summary fin!, 요약 소요 시간 : {bert_time}초')
         if len(result) != 0:
             
-            with open('secret.json', 'r') as f:
-                data = json.load(f)
-            openai.api_key = data['GPT_KEY']
+            # with open('secret.json', 'r') as f:
+            #     data = json.load(f)
+            # openai.api_key = data['GPT_KEY']
 
-            quest = (
-                f"User: 발화문을 한번 요약한 아래 스크립트를 읽고 이 발화문이 말하고자 하는 내용을 한국어로 보고서를 작성해서 출력해줘\n{result}"
-            )
-            messages = [{"role": "user", "content": quest}]
+            # quest = (
+            #     f"User: 발화문을 한번 요약한 아래 스크립트를 읽고 이 발화문이 말하고자 하는 내용을 한국어로 보고서를 작성해서 출력해줘\n{result}"
+            # )
+            # messages = [{"role": "user", "content": quest}]
 
-            completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=messages)
+            # completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=messages)
 
-            end_time = time.time()
-            gpt_time = round(end_time - start_time, 1)
-            chat_response = completion.choices[0].message["content"].strip()
-            print(f'summary fin!, 요약 소요 시간 : {gpt_time}초')
+            # end_time = time.time()
+            # gpt_time = round(end_time - start_time, 1)
+            # chat_response = completion.choices[0].message["content"].strip()
+            # print(f'summary fin!, 요약 소요 시간 : {gpt_time}초')
             
-            return JsonResponse({'message': 'Data sent and response received successfully', 'summary': chat_response, 'bert_time': bert_time, 'created_at':request_time })
+            # return JsonResponse({'message': 'Data sent and response received successfully', 'summary': chat_response, 'bert_time': bert_time, 'created_at':request_time })
+            return JsonResponse({'message': 'Data sent and response received successfully', 'summary': result, 'bert_time': bert_time, 'created_at':request_time })
             
 
         # 응답 처리

@@ -45,7 +45,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 # accountApp/models.py
 
 class Summary(models.Model):
-    user_email = models.EmailField(max_length=30)  # 문자열 필드로 변경
+    user_email = models.EmailField(max_length=40, blank=True)  # 문자열 필드로 변경
     video_id = models.CharField(max_length=255)
     channel_name = models.CharField(max_length=255)
     title = models.CharField(max_length=255)
