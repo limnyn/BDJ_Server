@@ -13,17 +13,17 @@ def get_video_data(video_id):
         "id": video_id,
         "key": api_key
     }
-
+    
     try:
         response = requests.get(base_url, params=params)
         data = response.json()
-        # print(data)
+        print(data)
         # Check if the response contains valid data
         if "items" in data and len(data["items"]) > 0:
             title = data["items"][0]["snippet"]["title"]
             channel_name = data["items"][0]["snippet"]["channelTitle"]
             category_id = data["items"][0]["snippet"]["categoryId"]
-            thumbnail = data["items"][0]["snippet"]["thumbnails"]["maxres"]["url"]
+            thumbnail = data["items"][0]["snippet"]["thumbnails"]["standard"]["url"]
             if "tags" in data["items"][0]["snippet"]:
                 tags =  data["items"][0]["snippet"]["tags"]
                 return title, channel_name, category_id, tags, thumbnail
@@ -36,6 +36,10 @@ def get_video_data(video_id):
     except requests.exceptions.RequestException as e:
         return f"An error occurred: {e}"
 
+# 231102
+# thumbnail에 maxres 이미지값이 없는 경우도 있어서 thumbnail은 standard화질로 보내는 거로 변경
+# standard 이미지 사이즈는 640480 사이즈로 640360이미지에 위 아래로 레터박스가 있는 형태 
+# 사용할 때 잘라서 쓰도록
 
 
 

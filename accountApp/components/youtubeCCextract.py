@@ -39,3 +39,4 @@ def caption_extract(url):
     # print(title,video_id, url)
     return video_id, channel_name, title, "\n".join(text_list), category_id, tags, thumbnail
 
+
