@@ -15,15 +15,19 @@ Including another URLconf
 """
 
 from django.urls import path
-from .views import summary_from_url ,summary_from_text, recent_summary
+from .views import summary_from_url ,summary_from_text, recent_summary, user_summaries
 
 urlpatterns = [
 
-    path('youtube_summary/', summary_from_url),
-    path('youtube_summary', summary_from_url),
-    path('text_summary/', summary_from_text),
-    path('text_summary', summary_from_text),
+    path('summary/url/', summary_from_url),
+    path('summary/url', summary_from_url),
     
-    path('recent_summary/', recent_summary),
-    path('recent_summary', recent_summary),
+    path('summary/text/', summary_from_text),
+    path('summary/text', summary_from_text),
+    
+    path('user/summaries/', user_summaries),
+    path('user/summaries', user_summaries),
+    
+    path('summary/recent/', recent_summary),
+    path('symmary/recent', recent_summary),
 ]

@@ -12,7 +12,6 @@ from rest_framework_simplejwt.authentication import JWTTokenUserAuthentication
 
 
 from accountApp.components.cc_to_text import cc_to_txt
-
 from accountApp.components.youtubeCCextract import caption_extract
 from summarizer import Summarizer
 
@@ -77,23 +76,23 @@ def summary_from_url(request):
 
             print(f'summary fin!, 요약 소요 시간 : {bert_time}초')
 
-            # with open('secret.json', 'r') as f:
-            #     data = json.load(f)
-            # openai.api_key = data['GPT_KEY']
+            with open('secret.json', 'r') as f:
+                data = json.load(f)
+            openai.api_key = data['GPT_KEY']
 
-            # quest = (
-            #     f"User: {title}라는 제목을 가진 영상의 요약 내용인\n[{full}]\n를 읽고 이 영상에 대한 내용을 한국어로 보고서를 작성해서 출력해줘"
-            # )
-            # messages = [{"role": "user", "content": quest}]
+            quest = (
+                f"User: {title}라는 제목을 가진 영상의 요약 내용인\n[{full}]\n를 읽고 이 영상에 대한 내용을 한국어로 보고서를 작성해서 출력해줘"
+            )
+            messages = [{"role": "user", "content": quest}]
 
-            # completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=messages)
+            completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=messages)
 
 
-            # chat_response = completion.choices[0].message["content"].strip()
-            # # print(f"보고서: {chat_response}") 
-            # bert_time = round(end_time - start_time, 1)        
-            # full = chat_response
-            summary_obj = Summary(user_email=post_email, video_id=video_id, channel_name=channel_name, title=title, summary=full,thumbnail=thumbnail, created_at =request_time)
+            chat_response = completion.choices[0].message["content"].strip()
+            # print(f"보고서: {chat_response}") 
+            bert_time = round(end_time - start_time, 1)        
+            full = chat_response
+            summary_obj = Summary(user_email=post_email, video_id=video_id, channel_name=channel_name, title=title, summary=full, tags=','.join(tags), thumbnail=thumbnail, created_at =request_time)
             summary_obj.save()
             
 
@@ -123,24 +122,24 @@ def summary_from_text(request):
         print(f'summary fin!, 요약 소요 시간 : {bert_time}초')
         if len(result) != 0:
             
-            # with open('secret.json', 'r') as f:
-            #     data = json.load(f)
-            # openai.api_key = data['GPT_KEY']
+            with open('secret.json', 'r') as f:
+                data = json.load(f)
+            openai.api_key = data['GPT_KEY']
 
-            # quest = (
-            #     f"User: 발화문을 한번 요약한 아래 스크립트를 읽고 이 발화문이 말하고자 하는 내용을 한국어로 보고서를 작성해서 출력해줘\n{result}"
-            # )
-            # messages = [{"role": "user", "content": quest}]
+            quest = (
+                f"User: 발화문을 한번 요약한 아래 스크립트를 읽고 이 발화문이 말하고자 하는 내용을 한국어로 보고서를 작성해서 출력해줘\n{result}"
+            )
+            messages = [{"role": "user", "content": quest}]
 
-            # completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=messages)
+            completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=messages)
 
-            # end_time = time.time()
-            # gpt_time = round(end_time - start_time, 1)
-            # chat_response = completion.choices[0].message["content"].strip()
-            # print(f'summary fin!, 요약 소요 시간 : {gpt_time}초')
+            end_time = time.time()
+            gpt_time = round(end_time - start_time, 1)
+            chat_response = completion.choices[0].message["content"].strip()
+            print(f'summary fin!, 요약 소요 시간 : {gpt_time}초')
             
-            # return JsonResponse({'message': 'Data sent and response received successfully', 'summary': chat_response, 'bert_time': bert_time, 'created_at':request_time })
-            return JsonResponse({'message': 'Data sent and response received successfully', 'summary': result, 'bert_time': bert_time, 'created_at':request_time })
+            return JsonResponse({'message': 'Data sent and response received successfully', 'summary': chat_response, 'bert_time': bert_time, 'created_at':request_time })
+            # return JsonResponse({'message': 'Data sent and response received successfully', 'summary': result, 'bert_time': bert_time, 'created_at':request_time })
             
 
         # 응답 처리
@@ -166,11 +165,38 @@ def recent_summary(request):
                 'title': summary.title,
                 'summary': summary.summary,
                 'thumbnail': summary.thumbnail,
+                'tags':summary.tags,
                 'created_at': summary.created_at.strftime('%Y-%m-%d %H:%M:%S'),
             }
             summaries_data.append(summary_data)
         print("recent_summary 전송완료!")
         return JsonResponse({'summary_len' : len(summaries_data), 'summaries' :summaries_data})
+            
+        
+
+@api_view(['POST'])
+@permission_classes((IsAuthenticated, ))
+@authentication_classes((JWTTokenUserAuthentication,))
+def user_summaries(request):
+    if request.method == 'POST':
+        my_email = request.data.get('email')
+        my_user_summaries = Summary.objects.filter(user_email=my_email)
+        my_summaries = []
+
+        
+        for summary in my_user_summaries:
+            summary_data = {
+                'video_id': summary.video_id,
+                'channel_name' : summary.channel_name,
+                'title': summary.title,
+                'summary': summary.summary,
+                'thumbnail': summary.thumbnail,
+                'tags':summary.tags,
+                'created_at': summary.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            }
+            my_summaries.append(summary_data)
+        print("recent_summary 전송완료!")
+        return JsonResponse({'summary_len' : len(my_summaries), 'summaries' :my_summaries})
             
         
         
