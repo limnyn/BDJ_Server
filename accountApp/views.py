@@ -65,9 +65,19 @@ def summary_from_url(request):
         # print(subtitles)
         start_time = time.time()
         model = Summarizer()
-        result = model(subtitles, min_length=60)
+        full = "".join(subtitles)
         
-        full = "".join(result)
+        if len(full) > 1200:
+            result = model(full, min_length=60)
+            quest = (
+                f"User: {title}라는 제목을 가진 영상의 요약 내용인 다음 글\n[{result}]\n를 읽고 이 영상에 대한 내용을 한국어로 보고서를 작성해서 출력해줘"
+            )
+        else:
+            result = full
+            quest = (
+                f"User: {title}라는 제목을 가진 영상의 스크립트 내용인 다음 글\n[{result}]\n를 읽고 이 영상에 대한 내용을 한국어로 보고서를 작성해서 출력해줘"
+            )
+        
         end_time = time.time()
         if len(full) == 0:
             print("bert 요약불가 링크")
@@ -80,9 +90,6 @@ def summary_from_url(request):
                 data = json.load(f)
             openai.api_key = data['GPT_KEY']
 
-            quest = (
-                f"User: {title}라는 제목을 가진 영상의 요약 내용인\n[{full}]\n를 읽고 이 영상에 대한 내용을 한국어로 보고서를 작성해서 출력해줘"
-            )
             messages = [{"role": "user", "content": quest}]
 
             completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=messages)
@@ -116,7 +123,17 @@ def summary_from_text(request):
 
         start_time = time.time()
         model = Summarizer()
-        result = model(text, min_length=60)
+        if len(text) > 1200:
+            result = model(text, min_length=60)
+            quest = (
+                f"User: 발화문을 한번 요약한 아래 스크립트를 읽고 이 발화문이 말하고자 하는 내용을 한국어로 보고서를 작성해서 출력해줘\n{result}"
+            )
+        else:
+            result = text
+            quest = (
+                f"User: 아래 발화문 스크립트를 읽고 이 발화문이 말하고자 하는 내용을 한국어로 보고서를 작성해서 출력해줘\n{result}"
+            )
+        
         end_time = time.time()
         bert_time = round(end_time - start_time, 1)
         print(f'summary fin!, 요약 소요 시간 : {bert_time}초')
@@ -126,9 +143,6 @@ def summary_from_text(request):
                 data = json.load(f)
             openai.api_key = data['GPT_KEY']
 
-            quest = (
-                f"User: 발화문을 한번 요약한 아래 스크립트를 읽고 이 발화문이 말하고자 하는 내용을 한국어로 보고서를 작성해서 출력해줘\n{result}"
-            )
             messages = [{"role": "user", "content": quest}]
 
             completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=messages)

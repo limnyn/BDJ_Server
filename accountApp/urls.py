@@ -29,5 +29,5 @@ urlpatterns = [
     path('user/summaries', user_summaries),
     
     path('summary/recent/', recent_summary),
-    path('symmary/recent', recent_summary),
+    path('summary/recent', recent_summary),
 ]
