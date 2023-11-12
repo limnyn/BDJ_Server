@@ -194,7 +194,7 @@ def recent_summary(request):
 def user_summaries(request):
     if request.method == 'POST':
         my_email = request.data.get('email')
-        my_user_summaries = Summary.objects.filter(user_email=my_email)
+        my_user_summaries = Summary.objects.filter(user_email=my_email).order_by("-created_at")
         my_summaries = []
 
         
