@@ -1,28 +1,10 @@
 # BDJ_Server
 nas docker drf Backend server 
-->http://limnyn.asuscomm.com:54345
-admin/
-password/reset/ [name='rest_password_reset']
-password/reset/confirm/ [name='rest_password_reset_confirm']
-login/ [name='rest_login']
-logout/ [name='rest_logout']
-user/ [name='rest_user_details']
-password/change/ [name='rest_password_change']
-token/verify/ [name='token_verify']
-token/refresh/ [name='token_refresh']
-registration/
-api/summary/url/
-api/summary/url
-api/summary/text/
-api/summary/text
-api/user/summaries/
-api/user/summaries
-api/summary/recent/
-api/summary/recent
+SERVER API : http://limnyn.asuscomm.com:54345
 
 use jwt token protocol and bert summarizer
 
-web : http://summarymaster.site/
+web : http://summarymaster.site/recent/youtube
 
 
 
